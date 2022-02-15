@@ -6,5 +6,11 @@ const MUtils = {
     },
     getRandomFloat(min, max) {
       return Math.random()*(max-min)+min;
+    },
+    getRandomChar(pool = 'abcdefghijklmnopqrstuvwxyz') {
+      return pool[this.getRandomInt(0,pool.length)];
+    },
+    getRandomString(length, pool = 'abcdefghijklmnopqrstuvwxyz') {
+      return [...Array(length).keys()].map(m => pool[this.getRandomInt(0,pool.length)]).join('');
     }
 }
