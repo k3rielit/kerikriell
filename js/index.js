@@ -1,3 +1,39 @@
+const MTasks = {
+    list: [],
+    index = 0,
+    add(tObject) {
+        if(tObject.hasOwnProperty('calc') && tObject.hasOwnProperty('UI')) this.list.push(tObject);
+        else console.log('Missing `calc` and `UI` properties from `tObject`.');
+    },
+    next() {
+        this.index += this.index<this.list.length-1 ? 1 : 0;     // returns html tag of the next task
+        return list[index];
+    },
+    back() {
+        this.index -= this.index>1 ? 1 : 0;     // returns html tag of the previous task
+        return list[index];
+    },
+    current() {
+        return list[index];
+    },
+    empty() {
+        this.list = [];
+    },
+    isLast() {
+        return this.index == this.list.length-1;
+    },
+    isFirst() {
+        return this.index == 0;
+    },
+    evaluate(inputs) {
+        return {
+            score: 0,
+            total: 0,
+            //details: this.list.length>0 ? this.list,
+        }
+    }, // expects an [] with values from the inputs, then compares it with the 'list', and returns a table with input and expected values, clears list, etc ...
+}
+
 const MManage = {
     tasks: [],
     reset: () => MManage.tasks = [],
@@ -5,8 +41,10 @@ const MManage = {
         while(count--) {
             this.tasks.push(this.getRandomTask(object,difficulty));
         }
+        const parser=math.parser()
+        parser.evaluate("x=3");
         document.querySelector('#tasksCheck').addEventListener('click',()=>{
-            console.log(this.tasks.concat([]).map(m => parseInt(m.elem.querySelector('#input').value) == m.type.calc(m.elem)).filter(f => f).length + "/" + this.tasks.length);
+            console.log(this.tasks.concat([]).map(m => parser.evaluate(m.elem.querySelector('#input').value) == m.type.calc(m.elem)).filter(f => f).length + "/" + this.tasks.length);
         },true);
     },
     print(selector) {
