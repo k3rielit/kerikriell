@@ -1,86 +1,64 @@
 const MTasks = {
     list: [],
-    index = 0,
-    add(tObject) {
-        if(tObject.hasOwnProperty('calc') && tObject.hasOwnProperty('UI')) this.list.push(tObject);
-        else console.log('Missing `calc` and `UI` properties from `tObject`.');
-    },
-    next() {
-        this.index += this.index<this.list.length-1 ? 1 : 0;     // returns html tag of the next task
-        return list[index];
-    },
-    back() {
-        this.index -= this.index>1 ? 1 : 0;     // returns html tag of the previous task
-        return list[index];
-    },
-    current() {
-        return list[index];
-    },
-    empty() {
-        this.list = [];
-    },
-    isLast() {
-        return this.index == this.list.length-1;
-    },
-    isFirst() {
-        return this.index == 0;
-    },
-    evaluate(inputs) {
-        return {
-            score: 0,
-            total: 0,
-            //details: this.list.length>0 ? this.list,
-        }
-    }, // expects an [] with values from the inputs, then compares it with the 'list', and returns a table with input and expected values, clears list, etc ...
-}
-
-const MManage = {
-    tasks: [],
-    reset: () => MManage.tasks = [],
-    addTasks(object,difficulty,count) {
-        while(count--) {
-            this.tasks.push(this.getRandomTask(object,difficulty));
-        }
-        const parser=math.parser()
-        parser.evaluate("x=3");
-        document.querySelector('#tasksCheck').addEventListener('click',()=>{
-            console.log(this.tasks.concat([]).map(m => parser.evaluate(m.elem.querySelector('#input').value) == m.type.calc(m.elem)).filter(f => f).length + "/" + this.tasks.length);
-        },true);
-    },
-    print(selector) {
-        if(this.tasks.length>0) {
-                console.log('xd');
-            this.tasks.forEach(task => {
-                // task: { HTML Element, MData reference }
-                document.querySelector(selector).appendChild(task.elem);
-            });
-        }
-    },
-    getRandomTask(object,difficulty) {
-        if(object.hasOwnProperty(difficulty)) {
+    index: 0,
+    add(object,difficulty,index) {
+        if(MData.hasOwnProperty(object) && MData[object].hasOwnProperty(difficulty)) {
             let newTask = {
-                elem: document.getElementById('taskTemplate').querySelector('.task').cloneNode(true),
-                type: object[difficulty][MUtils.getRandomInt(0,object[difficulty].length)],
-                check: undefined,
+                elem: document.querySelector('#taskTemplate > .task').cloneNode(true),
+                type: MData[object][difficulty][index],
             }
             if(newTask.elem && newTask.type) {
+                newTask.elem.setAttribute('task-id',this.list.length || 0);
                 newTask.elem.querySelector('#title').innerHTML = newTask.type.title();
                 newTask.elem.querySelector('#tooltip').innerHTML = newTask.type.tooltip();
                 newTask.elem.querySelector('#ui').innerHTML = newTask.type.UI();
-                console.log(newTask.elem.querySelector('#input'));
-                newTask.elem.querySelector('#input').replaceWith(newTask.elem.querySelector('#input').cloneNode(true)); // clear event listeners
-                newTask.elem.querySelector('#input').addEventListener('keydown',() => {
-                    //console.log(newTask.type.calc(newTask.elem)); // replace with the container
-                    console.log('xd');
-                },true);
-                return newTask;
+                if(newTask.elem.querySelector('#input')) {
+                    newTask.elem.querySelector('#input').replaceWith(newTask.elem.querySelector('#input').cloneNode(true)); // clear event listeners
+                    newTask.elem.querySelector('#input').addEventListener('keydown',() => {
+                        console.log('#input keydown');
+                    },true);
+                }
+                this.list.push(newTask);
             }
-            else return null;
         }
     },
+    next() {
+        this.index += this.index<this.list.length-1 ? 1 : 0;
+        return this.list[this.index];
+    },
+    prev() {
+        this.index -= this.index>1 ? 1 : 0;
+        return this.list[this.index];
+    },
+    html() {
+        if(this.list.length>0 && this.list[this.index]) {
+            return this.list[this.index].elem;
+        }
+        console.log({event: 'MTasks.html()', error: 'There are no tasks.'});
+        return document.createElement('div');
+    },
+    clear() {
+        this.list = [];
+        this.index = 0;
+    },
+    isLast() { return this.index == this.list.length-1; },
+    isFirst() { return this.index == 0; },
+    evaluate() {
+        const eParser=math.parser();
+        MUtils.replaceMathVars(eParser);
+        return {
+            score: this.list.concat([]).map(m => eParser.evaluate(m.elem.querySelector('#input').value) == m.type.calc(m.elem)).filter(f => f).length,
+            total: this.list.length,
+            //details: this.list.length>0 ? this.list,
+        }
+    },
+}
+
+const MManage = {
     printTaskSelect() {
         this.show('#taskSelect');
         this.hide('#taskSolve');
+        this.hide('#resultsContainer');
         let container = document.getElementById('taskSelect');
         container.innerText = '';
         let btn = document.querySelector('#startBtnTemplate > .btn');
@@ -93,32 +71,81 @@ const MManage = {
                 newBtn.innerText = difficulty;
                 console.log(difficulty+'');
                 newBtn.setAttribute(`onclick`,`MManage.selectTask('${elem}','${difficulty}')`);
-                newBtn.addEventListener('click',()=>console.log(`${difficulty}`),true);
                 if(MData[elem][difficulty].length==0) newBtn.classList.add('disabled');
                 newRow.querySelector('#rowBtnGroup').appendChild(newBtn);
             }
             container.appendChild(newRow);
         }
     },
-    selectTask(object,difficulty) {
+    selectTask(object,difficulty,index,count = 3) {
+        //  = MUtils.getRandomInt(0,MData[object][difficulty].length)
         this.hide('#taskSelect');
+        this.hide('#resultsContainer');
         this.show('#taskSolve');
-        console.log({object,difficulty});
         let container = document.getElementById('taskContainer');
         container.innerText = '';
-        this.addTasks(MData[object],difficulty,1);
-        this.print('#taskContainer');
+        console.log({event:'MManage.selectTask()',object,difficulty,index,count});
+        MTasks.clear();
+        while(count--) {
+            MTasks.add(object, difficulty, index?index:MUtils.getRandomInt(0,MData[object][difficulty].length));
+        }
+        MTasks.list.concat([]).map(m => {
+            container.appendChild(m.elem);
+            m.elem.style.display = 'none';
+        });
+        MTasks.html().style.display = 'block';
+        this.setCounter();
     },
+    extendTask() {}, // ...
+    next() {
+        if(MTasks.isLast()) {
+            let results = MTasks.evaluate();
+            MTasks.clear();
+            this.removeChildren(document.getElementById('taskContainer'));
+            let resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.querySelector('#score').innerText = results.score;
+            resultsContainer.querySelector('#total').innerText = results.total;
+            resultsContainer.querySelector('#percentage').innerText = Math.round(results.score / results.total * 100);
+            this.show('#resultsContainer');
+            this.hide('#taskSelect');
+            this.hide('#taskSolve');
+        }
+        else {
+            MTasks.list.concat([]).map(m => m.elem.style.display = 'none');
+            MTasks.next().elem.style.display = 'block';
+        }
+        this.setCounter();
+    },
+    prev() {
+        if(MTasks.isFirst()) {
+            this.show('#taskSelect');
+            this.hide('#taskSolve');
+            this.hide('#resultsContainer');
+            MTasks.clear();
+            this.removeChildren(document.getElementById('taskContainer'));
+        }
+        else {
+            MTasks.list.concat([]).map(m => m.elem.style.display = 'none');
+            MTasks.prev().elem.style.display = 'block';
+        }
+        this.setCounter();
+    },
+    done() {
+        this.show('#taskSelect');
+        this.hide('#taskSolve');
+        this.hide('#resultsContainer');
+    },
+    setCounter: () => document.getElementById('taskCount').setAttribute('placeholder',`Feladat: ${MTasks.index+1} / ${MTasks.list.length}`),
 
-    logMegold() {
-        console.log(this.tasks.concat([]).map(m => m.type.calc(m.elem)));
-    },
     show(selector) {
-        [...document.querySelectorAll(selector)].map(m => m.style.display = 'block');
+        if(selector) [...document.querySelectorAll(selector)].map(m => m.style.display = 'block');
     },
     hide(selector) {
-        [...document.querySelectorAll(selector)].map(m => m.style.display = 'none');
+        if(selector) [...document.querySelectorAll(selector)].map(m => m.style.display = 'none');
     },
+    removeChildren(node) {
+        [...node.querySelectorAll('*')].map(m => m.remove());
+    }
 }
 
 //MManage.placeRandom(MData.Azonossagok,'konnyu');
@@ -126,3 +153,5 @@ const MManage = {
 //MManage.print('#taskContainer');
 //MManage.logMegold();
 MManage.printTaskSelect();
+//MUtils.replaceMathVars();
+

@@ -58,22 +58,13 @@
 
     <!-- templates -->
     <div id="taskTemplate">
-        <div class="row my-3 task">
-            <div class="col-12">
-                <div class="card text-center">
-                    <h5 class="card-header" id="title"></h5>
-                    <div class="card-body">
-                        <div id="tooltip"></div>
-                        <div id="ui"></div>
-                    </div>
-                </div>
+        <div class="card text-center task">
+            <h5 class="card-header" id="title"></h5>
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted" id="tooltip"></h6>
+                <p class="card-text" id="ui"></p>
             </div>
         </div>
-        <!--<div class="task">
-            <h2 id="title"></h2>
-            <div id="tooltip"></div>
-            <div id="ui"></div>
-        </div>-->
     </div>
 
     <div id="startBtnTemplate">
@@ -96,23 +87,52 @@
             </div>
         </div>
     </div>
-
+    
     <!-- tasks -->
-    <div id="taskSolve" style="display:none;">
-        <div id="row">
-            <div class="col-12 px-5">
-                <div id="taskContainer"></div>
+    <div class="container" id="taskSolve">
+        <div class="row my-3">
+            <div class="col-12" id="taskContainer">
+                <!-- task here -->
             </div>
         </div>
-
         <div class="row">
-            <div class="col-10"></div>
-            <div class="col-2">
-                <button class="btn btn-success px-5 py-2" id="tasksCheck">haho</button>
+            <div class="card border-0">
+                <div class="card-body">
+                    <div class="input-group">
+                        <button id="taskPrev" onclick="MManage.prev()" type="button" class="btn btn-outline-secondary">Vissza</button>
+                        <input id="taskCount" type="text" class="form-control text-center" disabled readonly style="background-color: var(--bs-white)" placeholder="Feladat 1/1">
+                        <button id="taskNext" onclick="MManage.next()" type="button" class="btn btn-outline-secondary">Tovább</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
+    
+    <!-- results -->
+    <div class="container" id="resultsContainer">
+        <div class="row my-3">
+            <div class="col-12">
+                <div class="card text-center">
+                    <h5 class="card-header">Eredmény</h5>
+                    <div class="card-body">
+                        <h5 class="card-title"><span id="score">0</span> / <span id="total">0</span> pont</h5>
+                        <h6 class="card-subtitle mb-2 text-muted"><span id="percentage">0</span>%</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="card border-0">
+                <div class="card-body">
+                    <div class="input-group">
+                        <button id="resultsDone" onclick="MManage.done()" type="button" class="btn btn-outline-danger">Vissza</button>
+                        <input type="text" class="form-control text-center" disabled readonly style="background-color: var(--bs-white)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script src="js/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 </body>
