@@ -1,0 +1,2 @@
+csúszkával választani a feladatok számát
+eredmények rögzítése, idő, statisztika, visszanézhetőek legyenek az adatok

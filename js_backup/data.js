@@ -456,57 +456,6 @@ const MData = {
         emelt: [],
     },
 
-    Hatvanyok: {
-        konnyu: [
-            {
-                title:() => 'Hatványok',
-                UI: ()=> `<div> <span id="value_a">${MUtils.getRandomInt(1,20)}</span><sup><span id="value_b">${MUtils.getRandomInt(1,3)}</span></sup> = <input type="number" id="input"> </div>`,
-                tooltip: ()=> `<div> hehe segitseg </div>`,
-                calc: function(elem) {
-                    
-                    let a = parseInt(elem.querySelector('#value_a').innerText);
-                    let b = parseInt(elem.querySelector('#value_b').innerText);
-                    return Math.pow(a,b);
-                },
-            },
-            {
-                title: ()=> 'Hatványok',
-                UI: function(){ 
-                    let k=MUtils.getRandomInt(1,4);
-                 return `<div> <span id="value_a">${MUtils.getRandomInt(1,11)}</span><span id="value_k"><sup>${k}</sup></span>*<span id="value_b">${MUtils.getRandomInt(1,11)}</span><sup>${k}</sup> = <input type="number" id="input"> </div>`;
-            },
-                tooltip: ()=> `<div> hehe segitseg </div>`,
-                calc: function(elem) {
-                    
-                    let a = parseInt(elem.querySelector('#value_a').innerText);
-                    let b = parseInt(elem.querySelector('#value_b').innerText);
-                    let k = parseInt(elem.querySelector('#value_k').innerText);
-                    return Math.pow(a,k)*Math.pow(b,k);
-                },
-            },
-            {
-                title: ()=> 'Hatványok',
-                UI: function(){ 
-                    let k=MUtils.getRandomInt(1,4);
-                 return `<div> <span id="value_a">${MUtils.getRandomInt(1,11)}</span><span id="value_k"><sup>${k}</sup></span>/<span id="value_b">${MUtils.getRandomInt(1,11)}</span><sup>${k}</sup> = <input type="number" id="input"> </div>`;
-            },
-                tooltip: ()=> `<div> hehe segitseg </div>`,
-                calc: function(elem) {
-                    
-                    let a = parseInt(elem.querySelector('#value_a').innerText);
-                    let b = parseInt(elem.querySelector('#value_b').innerText);
-                    let k = parseInt(elem.querySelector('#value_k').innerText);
-                    return Math.pow(a,k)/Math.pow(b,k);
-                },
-            },
-            // more ...
-        ],
-        kozepes: [],
-        nehez: [],
-        emelt: [],
-    },
-
-
 
 
     // ...

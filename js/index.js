@@ -27,7 +27,7 @@ const MTasks = {
         return this.list[this.index];
     },
     prev() {
-        this.index -= this.index>1 ? 1 : 0;
+        this.index -= this.index>0 ? 1 : 0;
         return this.list[this.index];
     },
     html() {
