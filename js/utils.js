@@ -31,6 +31,21 @@ const MUtils = {
             _parser.evaluate(`${varChars[ri - 1]}=${ri * 2}`);
         }
     },
+    saveFile(filename, content) {
+        const blob = new Blob([content], {type: 'text'});
+        if(window.navigator.msSaveOrOpenBlob) {
+            window.navigator.msSaveBlob(blob, filename);
+        }
+        else{
+            const elem = window.document.createElement('a');
+            elem.style.display = "none";
+            elem.href = window.URL.createObjectURL(blob, { oneTimeOnly: true });
+            elem.download = filename;
+            document.body.appendChild(elem);
+            elem.click();
+            document.body.removeChild(elem);
+        }
+    },
 }
 
 const MDebug = {

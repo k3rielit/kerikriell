@@ -47,16 +47,40 @@ const MTasks = {
         const eParser=math.parser();
         MUtils.replaceMathVars(eParser);
         return {
+            date: new Date().toISOString(),
+            name: document.getElementById('personName').value || 'Névtelen',
             score: this.list.concat([]).map(m => eParser.evaluate(m.elem.querySelector('#input').value) == m.type.calc(m.elem)).filter(f => f).length,
             total: this.list.length,
-            //details: this.list.length>0 ? this.list,
+            tasks: this.list.map(m => ({
+                type: m.elem.querySelector('#title').innerText.trim(),
+                task: m.elem.querySelector('#ui').innerText.trim(),
+            })),
         }
     },
 }
 
 const MManage = {
+    addToHistory(item) {
+        if(localStorage.getItem('history')) {
+            let historyArray = JSON.parse(localStorage.getItem('history'));
+            historyArray.push(item);
+            localStorage.setItem('history',JSON.stringify(historyArray,null,2));
+        }
+        else localStorage.setItem('history',JSON.stringify([item],null,2));
+    },
+    getHistory() {
+        return JSON.parse(localStorage.getItem('history'));
+    },
+    downloadHistory() {
+        let date = new Date();
+        MUtils.saveFile(`eredmenyek-${date.toISOString()}.json`,localStorage.getItem('history'));
+    },
+    clearHistory() {
+        localStorage.removeItem('history');
+    },
     printTaskSelect() {
         this.show('#taskSelect');
+        this.show('#genTaskCountContainer');
         this.hide('#taskSolve');
         this.hide('#resultsContainer');
         let container = document.getElementById('taskSelect');
@@ -77,11 +101,13 @@ const MManage = {
             container.appendChild(newRow);
         }
     },
-    selectTask(object,difficulty,index,count = 3) {
-        //  = MUtils.getRandomInt(0,MData[object][difficulty].length)
+    selectTask(object,difficulty,index) {
         this.hide('#taskSelect');
+        this.hide('#genTaskCountContainer');
         this.hide('#resultsContainer');
         this.show('#taskSolve');
+        let count = document.getElementById('genTaskCount').value;
+        count = count>=3 && count<=100 ? count : 3;
         let container = document.getElementById('taskContainer');
         container.innerText = '';
         console.log({event:'MManage.selectTask()',object,difficulty,index,count});
@@ -96,10 +122,10 @@ const MManage = {
         MTasks.html().style.display = 'block';
         this.setCounter();
     },
-    extendTask() {}, // ...
     next() {
         if(MTasks.isLast()) {
             let results = MTasks.evaluate();
+            this.addToHistory(results);
             MTasks.clear();
             this.removeChildren(document.getElementById('taskContainer'));
             let resultsContainer = document.getElementById('resultsContainer');
@@ -119,6 +145,7 @@ const MManage = {
     prev() {
         if(MTasks.isFirst()) {
             this.show('#taskSelect');
+            this.show('#genTaskCountContainer');
             this.hide('#taskSolve');
             this.hide('#resultsContainer');
             MTasks.clear();
@@ -132,6 +159,7 @@ const MManage = {
     },
     done() {
         this.show('#taskSelect');
+        this.show('#genTaskCountContainer');
         this.hide('#taskSolve');
         this.hide('#resultsContainer');
     },
@@ -148,10 +176,4 @@ const MManage = {
     }
 }
 
-//MManage.placeRandom(MData.Azonossagok,'konnyu');
-//MManage.addTasks(MData.Azonossagok,'konnyu',10);
-//MManage.print('#taskContainer');
-//MManage.logMegold();
 MManage.printTaskSelect();
-//MUtils.replaceMathVars();
-
