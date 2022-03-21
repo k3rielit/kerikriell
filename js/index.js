@@ -1,4 +1,5 @@
 const MTasks = {
+    jtasks: [],
     list: [],
     index: 0,
     add(object,difficulty,index) {
@@ -60,6 +61,24 @@ const MTasks = {
 }
 
 const MManage = {
+    moveUp(node) {
+        let card = MUtils.parentNode(node,3);
+        card.parentNode.insertBefore(card,card.previousElementSibling);
+        window.scrollBy(0,-70);
+    },
+    moveDown(node) {
+        let card = MUtils.parentNode(node,3);
+        if(MUtils.nextSibling(card,1)) {
+            card.parentNode.insertBefore(card,MUtils.nextSibling(card,2));
+        }
+        else {
+            card.parentNode.prepend(card);
+        }
+        window.scrollBy(0,70);
+    },
+    removeItem(node) {
+        MUtils.parentNode(node,3).remove();
+    },
     addToHistory(item) {
         if(localStorage.getItem('history')) {
             let historyArray = JSON.parse(localStorage.getItem('history'));
@@ -68,9 +87,6 @@ const MManage = {
         }
         else localStorage.setItem('history',JSON.stringify([item],null,2));
     },
-    getHistory() {
-        return JSON.parse(localStorage.getItem('history'));
-    },
     downloadHistory() {
         let date = new Date();
         MUtils.saveFile(`eredmenyek-${date.toISOString()}.json`,localStorage.getItem('history'));
@@ -78,8 +94,15 @@ const MManage = {
     clearHistory() {
         localStorage.removeItem('history');
     },
+    printHistory() {
+        let history = JSON.parse(localStorage.getItem('history'));
+        history.forEach(item => {
+            
+        });
+    },
     printTaskSelect() {
         this.show('#taskSelect');
+        this.show('#taskSelectJson');
         this.show('#genTaskCountContainer');
         this.hide('#taskSolve');
         this.hide('#resultsContainer');
@@ -103,6 +126,7 @@ const MManage = {
     },
     selectTask(object,difficulty,index) {
         this.hide('#taskSelect');
+        this.hide('#taskSelectJson');
         this.hide('#genTaskCountContainer');
         this.hide('#resultsContainer');
         this.show('#taskSolve');
@@ -122,82 +146,88 @@ const MManage = {
         MTasks.html().style.display = 'block';
         this.setCounter();
     },
-     //By: Zoli
-     loadFromJson(index){
-        const [file] = document.getElementById("fileLoader").files;
-        let jtasks;
+    //By: Zoli
+    loadFromJson(buttonId, autolaunch) {
+        const [file] = document.getElementById(buttonId).files; // https://www.deadcoderising.com/2017-03-28-es6-destructuring-an-elegant-way-of-extracting-data-from-arrays-and-objects-in-javascript/
         if (file) {
-         jtasks=[];
-            let cnt=0;
+            MTasks.jtasks = [];
             fetch(URL.createObjectURL(file))
             .then(response => response.json())
-            .then(data => data.forEach(x=>{
-                cnt=x.count;
-                 while(cnt--)
-                    jtasks.push(x)
-                }));
-            }
-            return jtasks;
-    },
-    printTestGenSelect() {
-          this.show('#testCreator');
-        this.show('#buttonsContainer');
-        this.hide('#uiContainer');
-        this.hide('#taskSolve');
-        this.hide('#resultsContainer');
-        let container = document.getElementById('taskSelect');
-        let cont = document.querySelector('#testCreator > #taskCreator');
-        let newRow = cont.cloneNode(true);;
-      
-        container.appendChild(newRow);
-    },
-    printAvailableDiffs(elem){
-        for(difficulty in MData[elem]) {
-            let opt=document.createElement('option');
-            opt.value=difficulty;
-            opt.innerText = difficulty;
-            document.getElementById('difficulty').appendChild(opt);
+            .then(data => data.forEach(x => {
+                let elem = document.querySelector('#teacherModalObjectTemplate > .card').cloneNode(true);
+                elem.querySelector('#objectTitle').innerText = x.object;
+                elem.setAttribute('objtype',x.object);
+                for(difficulty in MData[x.object]) {
+                    let _elem = document.createElement('option');
+                    _elem.value = difficulty;
+                    _elem.innerText = difficulty;
+                    if(difficulty == x.difficulty) {
+                        _elem.selected = 'selected';
+                    }
+                    elem.querySelector('#objectDifficultySelect').appendChild(_elem);
+                }
+                elem.querySelector('#objectCountSelect').value = x.count;
+                document.querySelector('#genrow').appendChild(elem);
+            })).then(th => {
+                if(autolaunch) this.selectTaskJson();
+            });
         }
     },
-    hideElements(){
-        this.show('#testCreator');
-        this.show('#buttonsContainer');
-        this.hide('#uiContainer');
-        this.hide('#taskSolve');
-        this.hide('#resultsContainer');
-        let opt;
-        for(elem in MData) {
-            opt=document.createElement('option');
-            opt.text=elem;
-            opt.value=elem;
-            document.getElementById('object').appendChild(opt);
-        }
-        this.printAvailableDiffs(elem);
-
-
-    },
-    saveAsJson(){
-        var data=[];
-        for (let i = 0; i < document.getElementsByClassName("data").length; i++) {
-            data.push({
-                object:document.getElementsByClassName("data")[i].getElementsByTagName("select")[0].value,
-                difficulty:document.getElementsByClassName("data")[i].getElementsByTagName("select")[1].value,
-                count:document.getElementsByClassName("data")[i].getElementsByTagName("input")[0].value
-            } );
-        }
-        console.log(data);
-        var jdata=JSON.stringify(data);
+    saveAsJson() {
+        var jdata = JSON.stringify(this.getTeacherModalJson(),null,2);
         console.log(jdata);
-        MUtils.saveFile("dolgozat.json",jdata);        //document.getElementsByClassName("data")[0].getElementsByTagName("select")[0].value;
-
+        MUtils.saveFile("dolgozat.json",jdata);
     },
     selectTaskJson() {
-        let tmp=MManage.loadFromJson();
-        tmp.forEach(x=>{
-            MManage.selectTask(x.object,x.difficulty,index?index:MUtils.getRandomInt(0,MData[object][difficulty].length))
+        this.hide('#taskSelect');
+        this.hide('#taskSelectJson');
+        this.hide('#genTaskCountContainer');
+        this.hide('#resultsContainer');
+        this.show('#taskSolve');
+        let container = document.getElementById('taskContainer');
+        container.innerText = '';
+        MTasks.clear();
+        console.log(this.getTeacherModalJson());
+        this.getTeacherModalJson().forEach(x => {
+            //console.log(x);
+            //console.log([...new Array(parseInt(x.count)).keys()]);
+            [...new Array(parseInt(x.count)).keys()].map(i => {
+                MTasks.add(x.object, x.difficulty, MUtils.getRandomInt(0,MData[x.object][x.difficulty].length));
+                console.log(`[NEW TASK] obj:${x.object} diff:${x.difficulty} count:${x.count} i:${i} tasklength:${MTasks.list.length}`);
+            });
         });
+        MTasks.list.concat([]).map(m => {
+            container.appendChild(m.elem);
+            m.elem.style.display = 'none';
+        });
+        MTasks.html().style.display = 'block';
+        this.setCounter();
     },
     //By: Zoli vége
+    teacherModalAdd() {
+        let obj = document.querySelector("#teacherModalObjectSelect").value;
+        let elem = document.querySelector('#teacherModalObjectTemplate > .card').cloneNode(true);
+        elem.querySelector('#objectTitle').innerText = obj;
+        elem.setAttribute('objtype',obj);
+        Object.keys(MData[obj]).filter(f => MData[obj][f].length>0).forEach(difficulty => {
+            let _elem = document.createElement('option');
+            _elem.value = difficulty;
+            _elem.innerText = difficulty;
+            elem.querySelector('#objectDifficultySelect').appendChild(_elem);
+        });
+        document.querySelector('#genrow').appendChild(elem);
+    },
+    getTeacherModalJson() {
+        let result = [];
+        [...document.querySelectorAll("#genrow > .card")].forEach(task => {
+            result.push({
+                object: task.getAttribute('objtype'),
+                difficulty: task.querySelector('#objectDifficultySelect').value,
+                count: task.querySelector('#objectCountSelect').value,
+            });
+        });
+        return result;
+    },
     next() {
         if(MTasks.isLast()) {
             let results = MTasks.evaluate();
@@ -210,6 +240,7 @@ const MManage = {
             resultsContainer.querySelector('#percentage').innerText = Math.round(results.score / results.total * 100);
             this.show('#resultsContainer');
             this.hide('#taskSelect');
+            this.hide('#taskSelectJson');
             this.hide('#taskSolve');
         }
         else {
@@ -221,6 +252,7 @@ const MManage = {
     prev() {
         if(MTasks.isFirst()) {
             this.show('#taskSelect');
+            this.show('#taskSelectJson');
             this.show('#genTaskCountContainer');
             this.hide('#taskSolve');
             this.hide('#resultsContainer');
@@ -235,6 +267,7 @@ const MManage = {
     },
     done() {
         this.show('#taskSelect');
+        this.show('#taskSelectJson');
         this.show('#genTaskCountContainer');
         this.hide('#taskSolve');
         this.hide('#resultsContainer');
@@ -255,3 +288,9 @@ const MManage = {
 }
 
 MManage.printTaskSelect();
+Object.keys(MData).filter(f => Object.keys(MData[f]).length>0).forEach(key => {
+    let _elem = document.createElement('option');
+    _elem.value = key;
+    _elem.innerText = key;
+    document.querySelector('#teacherModalObjectSelect').appendChild(_elem);
+});

@@ -46,6 +46,23 @@ const MUtils = {
             document.body.removeChild(elem);
         }
     },
+    nextSibling(elem,times) {
+        let elem2 = elem.nextElementSibling;
+        for(let elemCount=0; elemCount<times-1; elemCount++) {
+            elem2 = elem2 ? elem2.nextElementSibling : elem2;
+        }
+        return elem2;
+    },
+    parentNode(elem,times) {
+        let elem2 = elem.parentNode;
+        for(let elemCount=0; elemCount<times-1; elemCount++) {
+            elem2 = elem2.parentNode;
+        }
+        return elem2;
+    },
+    scrollToBottom() {
+        window.scrollTo(0,document.body.scrollHeight);
+    },
 }
 
 const MDebug = {
