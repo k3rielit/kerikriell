@@ -106,7 +106,7 @@ const MManage = {
         this.hide('#genTaskCountContainer');
         this.hide('#resultsContainer');
         this.show('#taskSolve');
-        let count = document.getElementById('genTaskCount').value;
+        let count = document.getElementById('genTaskCount').value?document.getElementById('genTaskCount').value:MTasks.list.length;
         count = count>=3 && count<=100 ? count : 3;
         let container = document.getElementById('taskContainer');
         container.innerText = '';
@@ -122,6 +122,82 @@ const MManage = {
         MTasks.html().style.display = 'block';
         this.setCounter();
     },
+     //By: Zoli
+     loadFromJson(index){
+        const [file] = document.getElementById("fileLoader").files;
+        let jtasks;
+        if (file) {
+         jtasks=[];
+            let cnt=0;
+            fetch(URL.createObjectURL(file))
+            .then(response => response.json())
+            .then(data => data.forEach(x=>{
+                cnt=x.count;
+                 while(cnt--)
+                    jtasks.push(x)
+                }));
+            }
+            return jtasks;
+    },
+    printTestGenSelect() {
+          this.show('#testCreator');
+        this.show('#buttonsContainer');
+        this.hide('#uiContainer');
+        this.hide('#taskSolve');
+        this.hide('#resultsContainer');
+        let container = document.getElementById('taskSelect');
+        let cont = document.querySelector('#testCreator > #taskCreator');
+        let newRow = cont.cloneNode(true);;
+      
+        container.appendChild(newRow);
+    },
+    printAvailableDiffs(elem){
+        for(difficulty in MData[elem]) {
+            let opt=document.createElement('option');
+            opt.value=difficulty;
+            opt.innerText = difficulty;
+            document.getElementById('difficulty').appendChild(opt);
+        }
+    },
+    hideElements(){
+        this.show('#testCreator');
+        this.show('#buttonsContainer');
+        this.hide('#uiContainer');
+        this.hide('#taskSolve');
+        this.hide('#resultsContainer');
+        let opt;
+        for(elem in MData) {
+            opt=document.createElement('option');
+            opt.text=elem;
+            opt.value=elem;
+            document.getElementById('object').appendChild(opt);
+        }
+        this.printAvailableDiffs(elem);
+
+
+    },
+    saveAsJson(){
+        var data=[];
+        for (let i = 0; i < document.getElementsByClassName("data").length; i++) {
+            data.push({
+                object:document.getElementsByClassName("data")[i].getElementsByTagName("select")[0].value,
+                difficulty:document.getElementsByClassName("data")[i].getElementsByTagName("select")[1].value,
+                count:document.getElementsByClassName("data")[i].getElementsByTagName("input")[0].value
+            } );
+        }
+        console.log(data);
+        var jdata=JSON.stringify(data);
+        console.log(jdata);
+        MUtils.saveFile("dolgozat.json",jdata);        //document.getElementsByClassName("data")[0].getElementsByTagName("select")[0].value;
+
+    },
+    selectTaskJson() {
+        let tmp=MManage.loadFromJson();
+        tmp.forEach(x=>{
+            MManage.selectTask(x.object,x.difficulty,index?index:MUtils.getRandomInt(0,MData[object][difficulty].length))
+        });
+    },
+    //By: Zoli vége
     next() {
         if(MTasks.isLast()) {
             let results = MTasks.evaluate();
@@ -173,7 +249,9 @@ const MManage = {
     },
     removeChildren(node) {
         [...node.querySelectorAll('*')].map(m => m.remove());
-    }
+    },
+
+   
 }
 
 MManage.printTaskSelect();
